@@ -84,16 +84,21 @@ func main() {
 	}
 
 	message := &catResponse{}
-	logs := "抓寵記錄如下:\n"
+	logs := fmt.Sprintf("一共發出 %d 顆寶貝球\n", count)
+	success := 0
+	failure := 0
 	for i := 0; i < count; i++ {
 		message = <-ch
 		content = fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
-		logs += content + "\n"
 		log.Println(content)
 		if message.ReturnCode == "000000" {
-			doSend("己抓到寵物，請儘快確認打款事項")
+			success++
+		} else {
+			failure++
 		}
 	}
+	logs += fmt.Sprintf("有抓到一共 %d 隻\n", success)
+	logs += fmt.Sprintf("沒抓到一共 %d 隻", failure)
 	doSend(logs)
 }
 
