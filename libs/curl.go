@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 //Curl 物件參數
@@ -24,6 +25,29 @@ func (c Curl) Post(url string, params []byte) []byte {
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Panicln(err)
+	}
+	return body
+}
+
+//PostForm 進行HTTP Form POST
+func (c Curl) PostForm(url string, params string, header map[string]string) []byte {
+	data := strings.NewReader(params)
+	req, err := http.NewRequest("POST", url, data)
+	if err != nil {
+		log.Panicln(err)
+	}
+	for k, v := range header {
+		req.Header.Add(k, v)
+	}
+	clt := http.Client{}
+	resp, err := clt.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer req.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Panicln(err)

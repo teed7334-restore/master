@@ -48,6 +48,12 @@ type catResponse struct {
 	StatusCode    int32  `json:"statusCode"`
 }
 
+//notifyResponse 寄送訊息回傳參數
+type notifyResponse struct {
+	Status  int32  `json:"status"`
+	Message string `json:"message"`
+}
+
 //main 主程式
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -78,11 +84,31 @@ func main() {
 	}
 
 	message := &catResponse{}
+	logs := "抓寵記錄如下:\n"
 	for i := 0; i < count; i++ {
 		message = <-ch
 		content = fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
+		logs += content + "\n"
 		log.Println(content)
+		if message.ReturnCode == "000000" {
+			doSend("己抓到寵物，請儘快確認打款事項")
+		}
 	}
+	doSend(logs)
+}
+
+func doSend(message string) *notifyResponse {
+	notify := os.Getenv("notify")
+	token := os.Getenv("token")
+	n := bots.Notify{}.New(notify, token)
+	c := libs.Curl{}.New()
+	body := n.Send(message, c)
+	nr := &notifyResponse{}
+	err := json.Unmarshal(body, nr)
+	if err != nil {
+		log.Panicln(err)
+	}
+	return nr
 }
 
 //doCat 進行抓取
