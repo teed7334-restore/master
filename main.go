@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/teed7334-restore/master/bots"
@@ -48,30 +50,38 @@ type catResponse struct {
 
 //main 主程式
 func main() {
-	cpu := runtime.NumCPU()
-	thread := 5
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	level := os.Getenv("level")
 	id := os.Getenv("id")
+	count, err := strconv.Atoi(os.Getenv("count"))
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	lr := doLogin()
+
+	content := ""
 
 	rr := doReserve(level, lr.Info.Token)
 	if rr.ReturnCode != "000000" {
-		log.Println(rr.ReturnMessage)
+		content = fmt.Sprintf("[%s] %s", rr.ReturnCode, rr.ReturnMessage)
+		log.Println(content)
 	}
 
-	ch := make(chan *catResponse, cpu*thread)
-	for i := 0; i < cpu; i++ {
-		for j := 0; j < thread; j++ {
-			go func() {
-				ch <- doCat(level, id, lr.Info.Token)
-			}()
-		}
+	ch := make(chan *catResponse, 20)
+	for i := 0; i < count; i++ {
+		runtime.Gosched()
+		go func() {
+			ch <- doCat(level, id, lr.Info.Token)
+		}()
 	}
 
-	for i := 0; i < cpu*thread; i++ {
-		message := <-ch
-		log.Println(message.ReturnMessage)
+	message := &catResponse{}
+	for i := 0; i < count; i++ {
+		message = <-ch
+		content = fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
+		log.Println(content)
 	}
 }
 
