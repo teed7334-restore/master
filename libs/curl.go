@@ -18,7 +18,7 @@ func (c Curl) New() *Curl {
 }
 
 //Post 進行HTTP POST
-func (c Curl) Post(url string, params []byte) []byte {
+func (c *Curl) Post(url string, params []byte) []byte {
 	json := bytes.NewBuffer(params)
 	resp, err := http.Post(url, "application/json;charset=utf-8", json)
 	if err != nil {
@@ -33,7 +33,7 @@ func (c Curl) Post(url string, params []byte) []byte {
 }
 
 //PostForm 進行HTTP Form POST
-func (c Curl) PostForm(url string, params string, header map[string]string) []byte {
+func (c *Curl) PostForm(url string, params string, header map[string]string) []byte {
 	data := strings.NewReader(params)
 	req, err := http.NewRequest("POST", url, data)
 	if err != nil {

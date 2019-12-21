@@ -75,7 +75,7 @@ func main() {
 		log.Println(content)
 	}
 
-	ch := make(chan *catResponse, 20)
+	ch := make(chan *catResponse, count)
 	for i := 0; i < count; i++ {
 		runtime.Gosched()
 		go func() {
