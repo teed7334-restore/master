@@ -7,8 +7,8 @@ import (
 
 //Reserve 預約用資料結構
 type Reserve struct {
-	Level string
-	Token string
+	Level string `json:"_"`
+	Token string `json:"X-Access-Token"`
 }
 
 //New 建構式

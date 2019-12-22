@@ -58,11 +58,12 @@ type notifyResponse struct {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	level := os.Getenv("level")
-	id := os.Getenv("id")
-	count, err := strconv.Atoi(os.Getenv("count"))
+	level := os.Args[1]
+	id := os.Args[2]
+	count, err := strconv.Atoi(os.Args[3])
+
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 	}
 
 	lr := doLogin()

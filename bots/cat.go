@@ -7,8 +7,8 @@ import (
 
 //Cat 抓取用資料結構
 type Cat struct {
-	ID    string `json:"id"`
-	Level string `json:"level"`
+	ID    string `json:"_"`
+	Level string `json:"_"`
 	Token string `json:"X-Access-Token"`
 }
 
