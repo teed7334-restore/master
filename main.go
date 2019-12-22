@@ -61,25 +61,15 @@ func main() {
 	level := os.Args[1]
 	id := os.Args[2]
 	count, err := strconv.Atoi(os.Args[3])
-
 	if err != nil {
 		log.Println(err)
 	}
 
-	lr := doLogin()
-
-	content := ""
-
-	rr := doReserve(level, lr.Info.Token)
-	if rr.ReturnCode != "000000" {
-		content = fmt.Sprintf("[%s] %s", rr.ReturnCode, rr.ReturnMessage)
-		log.Println(content)
-	}
-
 	ch := make(chan *catResponse, count)
 	for i := 0; i < count; i++ {
-		runtime.Gosched()
 		go func() {
+			lr := doLogin()
+			doReserve(level, lr.Info.Token)
 			ch <- doCat(level, id, lr.Info.Token)
 		}()
 	}
@@ -90,7 +80,7 @@ func main() {
 	failure := 0
 	for i := 0; i < count; i++ {
 		message = <-ch
-		content = fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
+		content := fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
 		log.Println(content)
 		if message.ReturnCode == "000000" {
 			success++
