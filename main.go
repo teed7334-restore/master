@@ -58,19 +58,47 @@ type notifyResponse struct {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	level := os.Args[1]
-	id := os.Args[2]
-	count, err := strconv.Atoi(os.Args[3])
-	if err != nil {
-		log.Println(err)
-	}
+	action := os.Args[1]
 
+	switch action {
+	case "reserve":
+		level := os.Args[2]
+		doReserve(level)
+	case "cat":
+		level := os.Args[2]
+		id := os.Args[3]
+		count, err := strconv.Atoi(os.Args[4])
+		if err != nil {
+			log.Println(err)
+		}
+		doCat(level, id, count)
+	default:
+		os.Exit(0)
+	}
+}
+
+//doSend 傳送Line Notify通知訊息
+func doSend(message string) *notifyResponse {
+	notify := os.Getenv("notify")
+	token := os.Getenv("token")
+	n := bots.Notify{}.New(notify, token)
+	c := libs.Curl{}.New()
+	body := n.Send(message, c)
+	nr := &notifyResponse{}
+	err := json.Unmarshal(body, nr)
+	if err != nil {
+		log.Panicln(err)
+	}
+	return nr
+}
+
+//doCat 進行抓取
+func doCat(level, id string, count int) {
 	ch := make(chan *catResponse, count)
 	for i := 0; i < count; i++ {
 		go func() {
 			lr := doLogin()
-			doReserve(level, lr.Info.Token)
-			ch <- doCat(level, id, lr.Info.Token)
+			ch <- cat(level, id, lr.Info.Token)
 		}()
 	}
 
@@ -93,22 +121,8 @@ func main() {
 	doSend(logs)
 }
 
-func doSend(message string) *notifyResponse {
-	notify := os.Getenv("notify")
-	token := os.Getenv("token")
-	n := bots.Notify{}.New(notify, token)
-	c := libs.Curl{}.New()
-	body := n.Send(message, c)
-	nr := &notifyResponse{}
-	err := json.Unmarshal(body, nr)
-	if err != nil {
-		log.Panicln(err)
-	}
-	return nr
-}
-
-//doCat 進行抓取
-func doCat(level string, id string, token string) *catResponse {
+//cat 抓取
+func cat(level, id, token string) *catResponse {
 	url := os.Getenv("url")
 	ct := bots.Cat{}.New(id, level, token)
 	c := libs.Curl{}.New()
@@ -122,7 +136,20 @@ func doCat(level string, id string, token string) *catResponse {
 }
 
 //doReserve 進行預約
-func doReserve(level string, token string) *reserveResponse {
+func doReserve(level string) {
+	lr := doLogin()
+	rr := reserve(level, lr.Info.Token)
+	if rr.ReturnCode != "000000" {
+		content := fmt.Sprintf("[%s] %s", rr.ReturnCode, rr.ReturnMessage)
+		log.Println(content)
+		doSend("預約失敗")
+	} else {
+		doSend("預約成功")
+	}
+}
+
+//reserve 預約
+func reserve(level, token string) *reserveResponse {
 	url := os.Getenv("url")
 	r := bots.Reserve{}.New(level, token)
 	c := libs.Curl{}.New()
