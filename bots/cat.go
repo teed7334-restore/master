@@ -2,9 +2,9 @@ package bots
 
 //Cat 抓取用資料結構
 type Cat struct {
-	ID    string `json:"_"`
-	Level string `json:"_"`
-	Token string `json:"X-Access-Token"`
+	ID    string
+	Level string
+	Token string
 }
 
 //New 建構式
