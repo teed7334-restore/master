@@ -25,6 +25,8 @@ func (l *Login) GetToken(url string, curl curl) []byte {
 	if err != nil {
 		log.Panicln(err)
 	}
-	body := curl.Post(url, params)
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json;charset=utf-8"
+	body := curl.Post(url, params, header)
 	return body
 }

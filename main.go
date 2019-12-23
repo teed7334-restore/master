@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/teed7334-restore/master/bots"
@@ -95,12 +96,17 @@ func doSend(message string) *notifyResponse {
 //doCat 進行抓取
 func doCat(level, id string, count int) {
 	ch := make(chan *catResponse, count)
+	lr := doLogin()
+	var wg sync.WaitGroup
 	for i := 0; i < count; i++ {
+		wg.Add(1)
 		go func() {
-			lr := doLogin()
 			ch <- cat(level, id, lr.Info.Token)
+			wg.Done()
 		}()
+
 	}
+	wg.Wait()
 
 	message := &catResponse{}
 	logs := fmt.Sprintf("一共發出 %d 顆寶貝球\n", count)

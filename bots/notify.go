@@ -27,6 +27,6 @@ func (n *Notify) Send(message string, curl curl) []byte {
 	header := make(map[string]string)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", n.Token)
 	header["Content-Type"] = "application/x-www-form-urlencoded"
-	body := curl.PostForm(n.URL, params, header)
+	body := curl.Post(n.URL, []byte(params), header)
 	return body
 }

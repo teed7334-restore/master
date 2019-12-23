@@ -1,7 +1,6 @@
 package libs
 
 import (
-	"bytes"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,23 +17,12 @@ func (c Curl) New() *Curl {
 }
 
 //Post 進行HTTP POST
-func (c *Curl) Post(url string, params []byte) []byte {
-	json := bytes.NewBuffer(params)
-	resp, err := http.Post(url, "application/json;charset=utf-8", json)
-	if err != nil {
-		log.Panicln(err)
+func (c *Curl) Post(url string, params []byte, header map[string]string) []byte {
+	data := &strings.Reader{}
+	json := string(params)
+	if json != "" {
+		data = strings.NewReader(json)
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Panicln(err)
-	}
-	return body
-}
-
-//PostForm 進行HTTP Form POST
-func (c *Curl) PostForm(url string, params string, header map[string]string) []byte {
-	data := strings.NewReader(params)
 	req, err := http.NewRequest("POST", url, data)
 	if err != nil {
 		log.Panicln(err)
