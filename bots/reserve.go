@@ -1,5 +1,9 @@
 package bots
 
+import (
+	"fmt"
+)
+
 //Reserve 預約用資料結構
 type Reserve struct {
 	Level string
@@ -15,10 +19,10 @@ func (r Reserve) New(level string, token string) *Reserve {
 
 //Reserve 預約寵物
 func (r *Reserve) Reserve(url string, curl curl) []byte {
-	url = url + "/api/pets/" + r.Level + "/reserve"
-	header := make(map[string]string)
-	header["Content-Type"] = "application/x-www-form-urlencoded"
+	api := fmt.Sprintf("%s/api/pets/%s/reserve", url, r.Level)
+	prev := fmt.Sprintf("%s/index.html", url)
+	header := curl.GetMockHeader(url, prev)
 	header["X-Access-Token"] = r.Token
-	body := curl.Post(url, []byte(""), header)
+	body := curl.Post(api, []byte(""), header)
 	return body
 }

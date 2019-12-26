@@ -24,7 +24,7 @@ func (n *Notify) Send(message string, curl curl) []byte {
 	r.ParseForm()
 	r.Form.Add("message", message)
 	params := r.Form.Encode()
-	header := make(map[string]string)
+	header := curl.GetMockHeader(n.URL, "")
 	header["Authorization"] = fmt.Sprintf("Bearer %s", n.Token)
 	header["Content-Type"] = "application/x-www-form-urlencoded"
 	body := curl.Post(n.URL, []byte(params), header)

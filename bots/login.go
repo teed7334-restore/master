@@ -2,6 +2,7 @@ package bots
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -20,13 +21,13 @@ func (l Login) New(username, password string) *Login {
 
 //GetToken 取得驗証碼
 func (l *Login) GetToken(url string, curl curl) []byte {
-	url = url + "/api/sessions"
+	api := fmt.Sprintf("%s/api/sessions", url)
+	prev := fmt.Sprintf("%s/login.html", url)
 	params, err := json.Marshal(l)
 	if err != nil {
 		log.Panicln(err)
 	}
-	header := make(map[string]string)
-	header["Content-Type"] = "application/json;charset=utf-8"
-	body := curl.Post(url, params, header)
+	header := curl.GetMockHeader(url, prev)
+	body := curl.Post(api, params, header)
 	return body
 }
