@@ -98,10 +98,13 @@ func doCat(level, id string, count int) {
 	ch := make(chan *catResponse, count)
 	lr := doLogin()
 	var wg sync.WaitGroup
+	var mu sync.Mutex
+	wg.Add(count)
 	for i := 0; i < count; i++ {
-		wg.Add(1)
 		go func() {
+			mu.Lock()
 			ch <- cat(level, id, lr.Info.Token)
+			mu.Unlock()
 			wg.Done()
 		}()
 
