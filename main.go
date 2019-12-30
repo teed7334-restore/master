@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/teed7334-restore/master/bots"
@@ -97,8 +98,10 @@ func doSend(message string) *notifyResponse {
 func doCat(level, id string, count int) {
 	ch := make(chan *catResponse, count)
 	lr := doLogin()
+
 	var wg sync.WaitGroup
 	var mu sync.Mutex
+
 	wg.Add(count)
 	for i := 0; i < count; i++ {
 		go func() {
@@ -111,17 +114,21 @@ func doCat(level, id string, count int) {
 	}
 	wg.Wait()
 
-	message := &catResponse{}
 	logs := fmt.Sprintf("一共發出 %d 顆寶貝球\n", count)
 	success := 0
 	failure := 0
 	for i := 0; i < count; i++ {
-		message = <-ch
-		content := fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
-		log.Println(content)
-		if message.ReturnCode == "000000" {
-			success++
-		} else {
+		select {
+		case message := <-ch:
+			content := fmt.Sprintf("[%s] %s", message.ReturnCode, message.ReturnMessage)
+			log.Println(content)
+			if message.ReturnCode == "000000" {
+				success++
+			} else {
+				failure++
+			}
+		case <-time.After(10 * time.Second):
+			log.Println("協程運行超過十秒自動Time Out")
 			failure++
 		}
 	}
